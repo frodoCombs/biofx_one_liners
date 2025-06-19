@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioinformatics Code Snippets</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bioinformatics Code Snippets</h1>
+            <p class="subtitle">Your comprehensive database of bioinformatics code examples</p>
+        </header>
+
+        <!-- <div class="auth-section">
+            <div id="logged-out" class="auth-buttons">
+                <button class="btn" onclick="showModal('login')">Login</button>
+                <button class="btn" onclick="showModal('register')">Register</button>
+                <button class="btn btn-primary" onclick="showModal('purchase')">Purchase Full Access</button>
+            </div>
+            <div id="logged-in" style="display: none;">
+                <div class="user-info">
+                    <span>Welcome, <span id="username"></span>!</span>
+                    <span id="premium-status"></span>
+                </div>
+                <div class="auth-buttons">
+                    <button class="btn" onclick="showFavorites()">My Favorites</button>
+                    <button class="btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search code snippets...">
+                <!-- <select class="filter-select" id="languageFilter">
+                    <option value="">All Languages</option>
+                    <option value="python">Python</option>
+                    <option value="r">R</option>
+                    <option value="bash">Bash</option>
+                    <option value="perl">Perl</option>
+                    <option value="java">Java</option>
+                </select>
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="sequence-analysis">Sequence Analysis</option>
+                    <option value="phylogenetics">Phylogenetics</option>
+                    <option value="genomics">Genomics</option>
+                    <option value="proteomics">Proteomics</option>
+                    <option value="visualization">Visualization</option>
+                </select> -->
+            </div>
+        </div>
+
+        <div class="snippets-grid" id="snippetsContainer">
+            <!-- Snippets will be populated here -->
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeModal('login')">&times;</button>
+                <div class="modal-header">
+                    <h2>Login</h2>
+                </div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="modal">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeModal('register')">&times;</button>
+                <div class="modal-header">
+                    <h2>Register</h2>
+                </div>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="registerUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="registerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Purchase Modal -->
+        <div id="purchaseModal" class="modal">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeModal('purchase')">&times;</button>
+                <div class="modal-header">
+                    <h2>Purchase Full Access</h2>
+                    <p>Get unlimited access to all premium code snippets!</p>
+                    <h3 style="color: #28a745;">$29.99</h3>
+                </div>
+                <form onsubmit="handlePurchase(event)">
+                    <div class="form-group">
+                        <label>Card Number:</label>
+                        <input type="text" placeholder="1234 5678 9012 3456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date:</label>
+                        <input type="text" placeholder="MM/YY" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV:</label>
+                        <input type="text" placeholder="123" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Purchase Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real app, this would come from a database
+        const codeSnippets = [
+            {
+                id: 1,
+                title: "DNA Sequence Reverse Complement",
+                language: "python",
+                category: "sequence-analysis",
+                description: "Calculate the reverse complement of a DNA sequence",
+                code: `def reverse_complement(dna_seq):
+    complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    return ''.join(complement[base] for base in dna_seq[::-1])
+
+# Example usage
+sequence = "ATCGATCG"
+rev_comp = reverse_complement(sequence)
+print(f"Original: {sequence}")
+print(f"Reverse complement: {rev_comp}")`,
+                tags: ["DNA", "sequence", "complement"],
+                isPremium: false
+            },
+            {
+                id: 2,
+                title: "FASTA File Parser",
+                language: "python",
+                category: "genomics",
+                description: "Parse FASTA files and extract sequences",
+                code: `def parse_fasta(filename):
+    sequences = {}
+    current_header = None
+    
+    with open(filename, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if line.startswith('>'):
+                current_header = line[1:]
+                sequences[current_header] = ''
+            else:
+                sequences[current_header] += line
+    
+    return sequences
+
+# Example usage
+sequences = parse_fasta('example.fasta')
+for header, seq in sequences.items():
+    print(f"{header}: {len(seq)} bp")`,
+                tags: ["FASTA", "file-parsing", "genomics"],
+                isPremium: true
+            },
+            {
+                id: 3,
+                title: "Protein Molecular Weight Calculator",
+                language: "python",
+                category: "proteomics",
+                description: "Calculate molecular weight of protein sequences",
+                code: `def calculate_molecular_weight(protein_seq):
+    # Amino acid molecular weights (in Da)
+    aa_weights = {
+        'A': 89.1, 'R': 174.2, 'N': 132.1, 'D': 133.1,
+        'C': 121.0, 'E': 147.1, 'Q': 146.2, 'G': 75.1,
+        'H': 155.2, 'I': 131.2, 'L': 131.2, 'K': 146.2,
+        'M': 149.2, 'F': 165.2, 'P': 115.1, 'S': 105.1,
+        'T': 119.1, 'W': 204.2, 'Y': 181.2, 'V': 117.1
+    }
+    
+    weight = sum(aa_weights.get(aa, 0) for aa in protein_seq.upper())
+    # Subtract water molecules for peptide bonds
+    weight -= (len(protein_seq) - 1) * 18.0
+    
+    return weight
+
+# Example usage
+protein = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGE"
+mw = calculate_molecular_weight(protein)
+print(f"Molecular weight: {mw:.2f} Da")`,
+                tags: ["protein", "molecular-weight", "proteomics"],
+                isPremium: true
+            },
+            {
+                id: 4,
+                title: "GC Content Calculator",
+                language: "python",
+                category: "sequence-analysis",
+                description: "Calculate GC content of DNA sequences",
+                code: `def gc_content(dna_seq):
+    gc_count = dna_seq.upper().count('G') + dna_seq.upper().count('C')
+    total_count = len(dna_seq)
+    return (gc_count / total_count) * 100 if total_count > 0 else 0
+
+# Example usage
+sequence = "ATCGATCGATCGATCG"
+gc_percent = gc_content(sequence)
+print(f"GC content: {gc_percent:.1f}%")`,
+                tags: ["GC-content", "DNA", "analysis"],
+                isPremium: false
+            },
+            {
+                id: 5,
+                title: "Multiple Sequence Alignment with Biopython",
+                language: "python",
+                category: "sequence-analysis",
+                description: "Perform multiple sequence alignment using Biopython",
+                code: `from Bio import SeqIO
+from Bio.Align.Applications import ClustalwCommandline
+
+def align_sequences(input_file, output_file):
+    # Create ClustalW command line
+    clustalw_cline = ClustalwCommandline("clustalw2", 
+                                       infile=input_file,
+                                       outfile=output_file)
+    
+    # Run alignment
+    stdout, stderr = clustalw_cline()
+    
+    # Read and return alignment
+    from Bio import AlignIO
+    alignment = AlignIO.read(output_file, "clustal")
+    return alignment
+
+# Example usage
+alignment = align_sequences("sequences.fasta", "aligned.aln")
+print(f"Alignment length: {alignment.get_alignment_length()}")`,
+                tags: ["alignment", "biopython", "clustal"],
+                isPremium: true
+            },
+            {
+                id: 6,
+                title: "Phylogenetic Tree Visualization",
+                language: "r",
+                category: "phylogenetics",
+                description: "Create and visualize phylogenetic trees in R",
+                code: `library(ape)
+library(phytools)
+
+# Read tree file
+tree <- read.tree("phylogeny.nwk")
+
+# Plot basic tree
+plot(tree, type="phylogram", 
+     main="Phylogenetic Tree",
+     cex=0.8)
+
+# Add bootstrap values
+nodelabels(tree$node.label, 
+          cex=0.6, 
+          bg="white", 
+          frame="circle")
+
+# Add scale bar
+add.scale.bar(cex=0.7)`,
+                tags: ["phylogeny", "tree", "visualization", "R"],
+                isPremium: true
+            }
+        ];
+
+        // User management
+        let currentUser = null;
+        let userFavorites = new Set();
+
+        // Initialize the application
+        function init() {
+            checkAuthStatus();
+            displaySnippets();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', filterSnippets);
+            document.getElementById('languageFilter').addEventListener('change', filterSnippets);
+            document.getElementById('categoryFilter').addEventListener('change', filterSnippets);
+        }
+
+        function checkAuthStatus() {
+            const user = getUserFromStorage();
+            if (user) {
+                currentUser = user;
+                userFavorites = new Set(user.favorites || []);
+                showLoggedInState();
+            }
+        }
+
+        function showLoggedInState() {
+            document.getElementById('logged-out').style.display = 'none';
+            document.getElementById('logged-in').style.display = 'block';
+            document.getElementById('username').textContent = currentUser.username;
+            
+            const premiumStatus = currentUser.isPremium ? 
+                '(Premium Member)' : '(Free Account)';
+            document.getElementById('premium-status').textContent = premiumStatus;
+        }
+
+        function showLoggedOutState() {
+            document.getElementById('logged-out').style.display = 'flex';
+            document.getElementById('logged-in').style.display = 'none';
+        }
+
+        function displaySnippets(snippetsToShow = codeSnippets) {
+            const container = document.getElementById('snippetsContainer');
+            container.innerHTML = '';
+
+            snippetsToShow.forEach(snippet => {
+                const snippetCard = createSnippetCard(snippet);
+                container.appendChild(snippetCard);
+            });
+        }
+
+        function createSnippetCard(snippet) {
+            const card = document.createElement('div');
+            card.className = 'snippet-card';
+            
+            const isPremiumUser = currentUser && currentUser.isPremium;
+            const shouldShowPartial = snippet.isPremium && !isPremiumUser;
+            
+            if (shouldShowPartial) {
+                card.classList.add('premium-overlay');
+            }
+
+            const codeToShow = shouldShowPartial ? 
+                snippet.code.split('\n').slice(0, 5).join('\n') + '\n...' : 
+                snippet.code;
+
+            const isFavorite = userFavorites.has(snippet.id);
+
+            card.innerHTML = `
+                ${snippet.isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+                <div class="snippet-header">
+                    <div>
+                        <div class="snippet-title">${snippet.title}</div>
+                        <div class="snippet-language">${snippet.language.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="snippet-description">${snippet.description}</div>
+                <div class="snippet-code">${codeToShow}</div>
+                <div class="snippet-tags">
+                    ${snippet.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+                <div class="snippet-actions">
+                    <button class="favorite-btn ${isFavorite ? 'active' : ''}" 
+                            onclick="toggleFavorite(${snippet.id})"
+                            ${!currentUser ? 'title="Login to save favorites"' : ''}>
+                        ♥
+                    </button>
+                    <button class="btn" onclick="copyToClipboard(\`${snippet.code.replace(/`/g, '\\`')}\`)">
+                        Copy Code
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function filterSnippets() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const languageFilter = document.getElementById('languageFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            const filteredSnippets = codeSnippets.filter(snippet => {
+                const matchesSearch = snippet.title.toLowerCase().includes(searchTerm) ||
+                                    snippet.description.toLowerCase().includes(searchTerm) ||
+                                    snippet.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                
+                const matchesLanguage = !languageFilter || snippet.language === languageFilter;
+                const matchesCategory = !categoryFilter || snippet.category === categoryFilter;
+
+                return matchesSearch && matchesLanguage && matchesCategory;
+            });
+
+            displaySnippets(filteredSnippets);
+        }
+
+        function toggleFavorite(snippetId) {
+            if (!currentUser) {
+                alert('Please login to save favorites');
+                return;
+            }
+
+            if (userFavorites.has(snippetId)) {
+                userFavorites.delete(snippetId);
+            } else {
+                userFavorites.add(snippetId);
+            }
+
+            // Update user data
+            currentUser.favorites = Array.from(userFavorites);
+            saveUserToStorage(currentUser);
+            
+            // Refresh display
+            displaySnippets();
+        }
+
+        function showFavorites() {
+            const favoriteSnippets = codeSnippets.filter(snippet => 
+                userFavorites.has(snippet.id)
+            );
+            
+            if (favoriteSnippets.length === 0) {
+                alert('No favorites saved yet!');
+                return;
+            }
+            
+            displaySnippets(favoriteSnippets);
+        }
+
+        function copyToClipboard(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Code copied to clipboard!');
+            });
+        }
+
+        // Modal functions
+        function showModal(type) {
+            document.getElementById(type + 'Modal').style.display = 'block';
+        }
+
+        function closeModal(type) {
+            document.getElementById(type + 'Modal').style.display = 'none';
+        }
+
+        // Authentication functions
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // Simulate login (in real app, this would be an API call)
+            const user = getUserByEmail(email);
+            if (user && user.password === password) {
+                currentUser = user;
+                userFavorites = new Set(user.favorites || []);
+                showLoggedInState();
+                closeModal('login');
+                displaySnippets();
+                alert('Login successful!');
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            // Check if user already exists
+            if (getUserByEmail(email)) {
+                alert('User already exists with this email');
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                id: Date.now(),
+                username,
+                email,
+                password,
+                isPremium: false,
+                favorites: []
+            };
+
+            saveUserToStorage(newUser);
+            currentUser = newUser;
+            userFavorites = new Set();
+            showLoggedInState();
+            closeModal('register');
+            displaySnippets();
+            alert('Registration successful!');
+        }
+
+        function handlePurchase(event) {
+            event.preventDefault();
+            
+            if (!currentUser) {
+                alert('Please login first');
+                return;
+            }
+
+            // Simulate payment processing
+            setTimeout(() => {
+                currentUser.isPremium = true;
+                saveUserToStorage(currentUser);
+                showLoggedInState();
+                closeModal('purchase');
+                displaySnippets();
+                alert('Purchase successful! You now have premium access.');
+            }, 1000);
+        }
+
+        function logout() {
+            currentUser = null;
+            userFavorites = new Set();
+            showLoggedOutState();
+            displaySnippets();
+        }
+
+        // Storage functions (simulate database)
+        function saveUserToStorage(user) {
+            const users = JSON.parse(localStorage.getItem('biosnippets_users') || '[]');
+            const existingIndex = users.findIndex(u => u.id === user.id);
+            
+            if (existingIndex >= 0) {
+                users[existingIndex] = user;
+            } else {
+                users.push(user);
+            }
+            
+            localStorage.setItem('biosnippets_users', JSON.stringify(users));
+        }
+
+        function getUserFromStorage() {
+            const users = JSON.parse(localStorage.getItem('biosnippets_users') || '[]');
+            return users.find(u => u.id === currentUser?.id);
+        }
+
+        function getUserByEmail(email) {
+            const users = JSON.parse(localStorage.getItem('biosnippets_users') || '[]');
+            return users.find(u => u.email === email);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
