@@ -109,14 +109,7 @@ async function initializeApp() {
 // Search functionality
 function performSearch() {
     const query = document.getElementById('searchInput').value;
-    const category = document.getElementById('categoryFilter').value;
-    const language = document.getElementById('languageFilter').value;
-    const difficulty = document.getElementById('difficultyFilter').value;
-    
     const filters = {};
-    if (category) filters.category = category;
-    if (language) filters.language = language;
-    if (difficulty) filters.difficulty = difficulty;
     
     // Check if user has premium access (implement your auth logic here)
     filters.showPremium = checkPremiumAccess();
@@ -218,4 +211,12 @@ function toggleOutput(snippetId) {
 }
 
 // Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    
+    // Add search event listener
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', performSearch);
+    }
+});
