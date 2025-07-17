@@ -1,5 +1,3 @@
-
-
 {
     "snippets": [
       {
@@ -71,6 +69,90 @@
         "example_output": "Channels:\n        - bioconda\n        - conda-forge\n        - defaults\n       Platform: osx-arm64\n       Collecting package metadata (repodata.json): done\n       Solving environment: done\n       \n       ## Package Plan ##\n       \n         environment location: /Users/fordcombs/miniconda3/envs/test\n       \n         added / updated specs:\n           - python=3.10\n       \n       \n       The following packages will be downloaded:\n       \n           package                    |            build\n           ---------------------------|-----------------\n           libexpat-2.7.0             |       h286801f_0          64 KB  conda-forge\n           libffi-3.4.6               |       h1da3d7d_1          39 KB  conda-forge\n           libsqlite-3.50.1           |       h3f77e49_0         880 KB  conda-forge\n           pip-25.1.1                 |     pyh8b19718_0         1.2 MB  conda-forge\n           python-3.10.18             |h6cefb37_0_cpython        11.8 MB  conda-forge\n           readline-8.2               |       h1d1bf99_2         246 KB  conda-forge\n           setuptools-80.9.0          |     pyhff2d567_0         731 KB  conda-forge\n           tk-8.6.13                  |       h892fb3f_2         3.0 MB  conda-forge\n           tzdata-2025b               |       h78e105d_0         120 KB  conda-forge\n           wheel-0.45.1               |     pyhd8ed1ab_1          61 KB  conda-forge\n           ------------------------------------------------------------\n                                                  Total:        18.1 MB\n       \n       The following NEW packages will be INSTALLED:\n       \n         bzip2              conda-forge/osx-arm64::bzip2-1.0.8-h99b78c6_7 \n         ca-certificates    conda-forge/noarch::ca-certificates-2025.6.15-hbd8a1cb_0 \n         libexpat           conda-forge/osx-arm64::libexpat-2.7.0-h286801f_0 \n         libffi             conda-forge/osx-arm64::libffi-3.4.6-h1da3d7d_1 \n         liblzma            conda-forge/osx-arm64::liblzma-5.8.1-h39f12f2_2 \n         libsqlite          conda-forge/osx-arm64::libsqlite-3.50.1-h3f77e49_0 \n         libzlib            conda-forge/osx-arm64::libzlib-1.3.1-h8359307_2 \n         ncurses            conda-forge/osx-arm64::ncurses-6.5-h5e97a16_3 \n         openssl            conda-forge/osx-arm64::openssl-3.5.0-h81ee809_1 \n         pip                conda-forge/noarch::pip-25.1.1-pyh8b19718_0 \n         python             conda-forge/osx-arm64::python-3.10.18-h6cefb37_0_cpython \n         readline           conda-forge/osx-arm64::readline-8.2-h1d1bf99_2 \n         setuptools         conda-forge/noarch::setuptools-80.9.0-pyhff2d567_0 \n         tk                 conda-forge/osx-arm64::tk-8.6.13-h892fb3f_2 \n         tzdata             conda-forge/noarch::tzdata-2025b-h78e105d_0 \n         wheel              conda-forge/noarch::wheel-0.45.1-pyhd8ed1ab_1 \n       \n       \n       Proceed ([y]/n)? y\n       \n       \n       Downloading and Extracting Packages:\n                                                                                                                                                                  \n       Preparing transaction: done                                                                                                                                \n       Verifying transaction: done                                                                                                                                \n       Executing transaction: done                                                                                                                                \n       #                                                                                                                                                          \n       # To activate this environment, use                                                                                                                        \n       #                                                                                                                                                          \n       #     $ conda activate test                                                                                                                                \n       #                                                                                                                                                          \n       # To deactivate an active environment, use                                                                                                                 \n       #\n       #     $ conda deactivate",
         "created_date": "2024-01-19",
         "author": "FC"
+      },
+      {
+        "id": 6,
+        "title": "Remove conda environment",
+        "description": "Remove a conda environment",
+        "language": "bash",
+        "category": "environment-setup",
+        "tags": ["conda", "environment", "remove"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "conda remove -n biofx",
+        "example_output": "Remove all packages in environment /Users/fordcombs/miniconda3/envs/biofx:",
+        "created_date": "2024-01-20",
+        "author": "FC"
+      },
+      {
+        "id": 7,
+        "title": "Add conda channels",
+        "description": "Add conda channels to configuration",
+        "language": "bash",
+        "category": "environment-setup",
+        "tags": ["conda", "channels", "add"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "conda config --add channels bioconda",
+        "example_output": "",
+        "created_date": "2024-01-21",
+        "author": "FC"  
+      },
+      {
+        "id": 8,
+        "title": "Remove conda channels",
+        "description": "Remove conda channels from configuration",
+        "language": "bash",
+        "category": "environment-setup",
+        "tags": ["conda", "channels", "remove"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "conda config --remove channels bioconda",
+        "example_output": "",
+        "created_date": "2024-01-22",
+        "author": "FC"
+      },
+      {
+        "id": 9,
+        "title": "Download reads from SRA",
+        "description": "Download sequencing reads from the SRA database using fastq-dump",
+        "language": "bash",
+        "category": "file-parsing",
+        "tags": ["sra", "fastq-dump", "reads"],
+        "difficulty": "intermediate",
+        "premium": false,
+        "code": "fastq-dump --split-3 SRR33935754",
+        "example_output": "Read 1709675 spots for SRR33935754\nWritten 1709675 spots for SRR33935754",
+        "created_date": "2024-01-23",
+        "author": "FC"
+      },
+      {
+        "id": 10,
+        "title": "Download genome from NCBI",
+        "description": "Download a genome from NCBI using wget",
+        "language": "bash",
+        "category": "file-parsing",
+        "tags": ["ncbi", "genome", "download"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/195/955/GCF_000195955.2_ASM19595v2/GCF_000195955.2_ASM19595v2_genomic.fna.gz",
+        "example_output": "Resolving ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)... 2607:f220:41e:250::13, 2607:f220:41e:250::10, 2607:f220:41e:250::7, ...\nConnecting to ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)|2607:f220:41e:250::13|:443... connected.\nHTTP request sent, awaiting response... 200 OK\nLength: 1277508 (1.2M) [application/x-gzip]\nSaving to: ‘GCF_000195955.2_ASM19595v2_genomic.fna.gz’\n\nGCF_000195955.2_ASM19595v2_genomic.fna.gz 100%[======================================>]   1.22M  --.-KB/s    in 0.07s   \n\n2025-06-19 17:02:16 (16.7 MB/s) - ‘GCF_000195955.2_ASM19595v2_genomic.fna.gz’ saved [1277508/1277508]",
+        "created_date": "2024-01-24",
+        "author": "FC"
+      },
+      {
+        "id": 11,
+        "title": "Count unique variants in VCF",
+        "description": "Count unique variants in a VCF file",
+        "language": "bash",
+        "category": "file-parsing",
+        "tags": ["vcf", "variants", "count"],
+        "difficulty": "intermediate",
+        "premium": false,
+        "code": "cat *.vcf | grep -v '^#' | awk '{print $1 \"\\t\" $2 \"\\t\" $5}' | sort | uniq -d | wc -l",
+        "example_output": "",
+        "created_date": "2024-01-25",
+        "author": "BioCoder"
       }
     ],
     "categories": [

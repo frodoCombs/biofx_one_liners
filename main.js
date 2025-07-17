@@ -8,6 +8,7 @@ class SnippetsDatabase {
     }
 
     async loadDatabase() {
+        console.log('Loading snippets database...');
         try {
             const response = await fetch('snippets-database.json');
             const data = await response.json();
