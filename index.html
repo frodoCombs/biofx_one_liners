@@ -5,43 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bioinformatics Code Snippets</title>
     <link rel="stylesheet" href="styles.css">
+
 </head>
 <body>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTxaneni4bIWkVR3X_BmKCEPdWTdKnWOc",
+            authDomain: "biofx-snippets.firebaseapp.com",
+            projectId: "biofx-snippets",
+            storageBucket: "biofx-snippets.firebasestorage.app",
+            messagingSenderId: "882605459889",
+            appId: "1:882605459889:web:e9aef4b6bdc70e3a765590",
+            measurementId: "G-4KCER23145"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Make auth and db globally available
+        window.auth = auth;
+        window.db = db;
+        window.firebaseSignOut = firebaseSignOut;
+        window.signInWithPopup = signInWithPopup;
+        window.GoogleAuthProvider = GoogleAuthProvider;
+        window.GithubAuthProvider = GithubAuthProvider;
+        window.onAuthStateChanged = onAuthStateChanged;
+        
+        // Firestore functions
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.query = query;
+        window.where = where;
+        window.orderBy = orderBy;
+        window.serverTimestamp = serverTimestamp;
+
+        // Initialize auth state listener when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAuthStateListener();
+        });
+    </script>
     <div class="container">
         <header>
             <h1>Bioinformatics Code Snippets</h1>
             <p class="subtitle">Your comprehensive database of bioinformatics code examples</p>
         </header>
 
-        <!-- <div class="auth-section">
+        <div class="auth-section">
             <div id="logged-out" class="auth-buttons">
-                <button class="btn" onclick="showModal('login')">Login</button>
-                <button class="btn" onclick="showModal('register')">Register</button>
-                <button class="btn btn-primary" onclick="showModal('purchase')">Purchase Full Access</button>
+                <button class="btn" onclick="signInWithGoogle()">Sign in with Google</button>
+                <button class="btn" onclick="signInWithGitHub()">Sign in with GitHub</button>
             </div>
             <div id="logged-in" style="display: none;">
                 <div class="user-info">
+                    <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;">
                     <span>Welcome, <span id="username"></span>!</span>
-                    <span id="premium-status"></span>
                 </div>
                 <div class="auth-buttons">
-                    <button class="btn" onclick="showFavorites()">My Favorites</button>
-                    <button class="btn" onclick="logout()">Logout</button>
+                    <button class="btn" onclick="showFavorites()">My Favorites (<span id="favorites-count">0</span>)</button>
+                    <button class="btn" onclick="signOut()">Sign Out</button>
                 </div>
             </div>
-        </div> -->
+        </div>
+
 
         <div class="search-section">
             <div class="search-bar">
                 <input type="text" class="search-input" id="searchInput" placeholder="Search code snippets...">
-                <!-- <select class="filter-select" id="categoryFilter">
-                    <option value="">All Categories</option>
-                    <option value="sequence-analysis">Sequence Analysis</option>
-                    <option value="phylogenetics">Phylogenetics</option>
-                    <option value="genomics">Genomics</option>
-                    <option value="proteomics">Proteomics</option>
-                    <option value="visualization">Visualization</option>
-                </select> -->
             </div>
         </div>
 
@@ -49,80 +88,28 @@
             <!-- Snippets will be populated here -->
         </div>
 
-        <!-- Login Modal -->
-        <div id="loginModal" class="modal">
+        <div id="commentsModal" class="modal">
             <div class="modal-content">
-                <button class="close-modal" onclick="closeModal('login')">&times;</button>
+                <button class="close-modal" onclick="closeCommentsModal()">&times;</button>
                 <div class="modal-header">
-                    <h2>Login</h2>
+                    <h2>Comments for: <span id="modal-snippet-title"></span></h2>
                 </div>
-                <form onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" id="loginEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password:</label>
-                        <input type="password" id="loginPassword" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Register Modal -->
-        <div id="registerModal" class="modal">
-            <div class="modal-content">
-                <button class="close-modal" onclick="closeModal('register')">&times;</button>
-                <div class="modal-header">
-                    <h2>Register</h2>
+                <div id="comments-container">
+                    <!-- Comments will be loaded here -->
                 </div>
-                <form onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label>Username:</label>
-                        <input type="text" id="registerUsername" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" id="registerEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password:</label>
-                        <input type="password" id="registerPassword" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Purchase Modal -->
-        <div id="purchaseModal" class="modal">
-            <div class="modal-content">
-                <button class="close-modal" onclick="closeModal('purchase')">&times;</button>
-                <div class="modal-header">
-                    <h2>Purchase Full Access</h2>
-                    <p>Get unlimited access to all premium code snippets!</p>
-                    <h3 style="color: #28a745;">$29.99</h3>
+                <div class="add-comment-section" id="add-comment-section">
+                    <textarea id="comment-text" placeholder="Add a comment..." rows="3"></textarea>
+                    <button class="btn btn-primary" onclick="addComment()">Add Comment</button>
                 </div>
-                <form onsubmit="handlePurchase(event)">
-                    <div class="form-group">
-                        <label>Card Number:</label>
-                        <input type="text" placeholder="1234 5678 9012 3456" required>
+                <div id="login-prompt" style="display: none;">
+                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                        <button class="btn" onclick="signInWithGoogle(); closeCommentsModal();">Sign in with Google</button>
+                        <button class="btn" onclick="signInWithGitHub(); closeCommentsModal();">Sign in with GitHub</button>
                     </div>
-                    <div class="form-group">
-                        <label>Expiry Date:</label>
-                        <input type="text" placeholder="MM/YY" required>
-                    </div>
-                    <div class="form-group">
-                        <label>CVV:</label>
-                        <input type="text" placeholder="123" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Purchase Now</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-
     <script src="main.js"></script>
 </body>
 </html>

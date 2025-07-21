@@ -23,7 +23,6 @@ class SnippetsDatabase {
         }
     }
 
-    // Search snippets by query
     search(query, filters = {}) {
         if (!this.loaded) {
             console.warn('Database not loaded yet');
@@ -32,7 +31,6 @@ class SnippetsDatabase {
 
         let results = this.snippets;
 
-        // Apply text search
         if (query && query.trim()) {
             const searchTerm = query.toLowerCase();
             results = results.filter(snippet => 
@@ -43,7 +41,6 @@ class SnippetsDatabase {
             );
         }
 
-        // Apply filters
         if (filters.category) {
             results = results.filter(snippet => snippet.category === filters.category);
         }
@@ -56,7 +53,6 @@ class SnippetsDatabase {
             results = results.filter(snippet => snippet.difficulty === filters.difficulty);
         }
 
-        // Filter premium content if user is not authenticated/hasn't purchased
         if (!filters.showPremium) {
             results = results.filter(snippet => !snippet.premium);
         }
@@ -64,37 +60,306 @@ class SnippetsDatabase {
         return results;
     }
 
-    // Get snippet by ID
     getSnippetById(id) {
         return this.snippets.find(snippet => snippet.id === id);
     }
 
-    // Get all categories
     getCategories() {
         return this.categories;
     }
 
-    // Get all languages
     getLanguages() {
         return this.languages;
     }
 
-    // Get snippets by category
     getByCategory(category) {
         return this.snippets.filter(snippet => snippet.category === category);
     }
 
-    // Get random snippets
     getRandomSnippets(count = 5) {
         const shuffled = [...this.snippets].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
 }
 
-// Usage example
-const db = new SnippetsDatabase();
+// User Management Class
+class UserManager {
+    constructor() {
+        this.user = null;
+        this.favorites = new Set();
+    }
 
-// Initialize database
+    setUser(user) {
+        this.user = user;
+        if (user) {
+            this.loadUserFavorites();
+        } else {
+            this.favorites.clear();
+        }
+    }
+
+    async loadUserFavorites() {
+        if (!this.user) return;
+        
+        try {
+            // Load favorites from Firestore
+            const favoritesQuery = window.query(
+                window.collection(window.db, 'favorites'),
+                window.where('userId', '==', this.user.uid)
+            );
+            const querySnapshot = await window.getDocs(favoritesQuery);
+            
+            this.favorites.clear();
+            querySnapshot.forEach((doc) => {
+                this.favorites.add(doc.data().snippetId);
+            });
+            
+            this.updateFavoritesCount();
+            this.updateFavoriteButtons();
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        }
+    }
+
+    async toggleFavorite(snippetId) {
+        if (!this.user) {
+            alert('Please sign in to favorite snippets');
+            return;
+        }
+
+        try {
+            if (this.favorites.has(snippetId)) {
+                // Remove from favorites
+                this.favorites.delete(snippetId);
+                
+                // Remove from Firestore
+                const favoritesQuery = window.query(
+                    window.collection(window.db, 'favorites'),
+                    window.where('userId', '==', this.user.uid),
+                    window.where('snippetId', '==', snippetId)
+                );
+                const querySnapshot = await window.getDocs(favoritesQuery);
+                querySnapshot.forEach((doc) => {
+                    doc.ref.delete();
+                });
+            } else {
+                // Add to favorites
+                this.favorites.add(snippetId);
+                
+                // Add to Firestore
+                await window.addDoc(window.collection(window.db, 'favorites'), {
+                    userId: this.user.uid,
+                    snippetId: snippetId,
+                    createdAt: window.serverTimestamp()
+                });
+            }
+
+            this.updateFavoritesCount();
+            this.updateFavoriteButtons();
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            alert('Error updating favorites. Please try again.');
+        }
+    }
+
+    updateFavoritesCount() {
+        const countElement = document.getElementById('favorites-count');
+        if (countElement) {
+            countElement.textContent = this.favorites.size;
+        }
+    }
+
+    updateFavoriteButtons() {
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            const snippetId = btn.dataset.snippetId;
+            if (this.favorites.has(snippetId)) {
+                btn.classList.add('favorited');
+                btn.innerHTML = '❤️ Favorited';
+            } else {
+                btn.classList.remove('favorited');
+                btn.innerHTML = '🤍 Favorite';
+            }
+        });
+    }
+
+    isFavorite(snippetId) {
+        return this.favorites.has(snippetId);
+    }
+
+    getFavorites() {
+        return Array.from(this.favorites);
+    }
+}
+
+// Comments Manager Class
+class CommentsManager {
+    constructor() {
+        this.currentSnippetId = null;
+    }
+
+    async showComments(snippetId, snippetTitle) {
+        this.currentSnippetId = snippetId;
+        
+        document.getElementById('modal-snippet-title').textContent = snippetTitle;
+        
+        // Show modal immediately
+        document.getElementById('commentsModal').style.display = 'block';
+        
+        if (userManager.user) {
+            document.getElementById('add-comment-section').style.display = 'block';
+            document.getElementById('login-prompt').style.display = 'none';
+            
+            // Show loading message and then load comments
+            document.getElementById('comments-container').innerHTML = '<p>Loading comments...</p>';
+            await this.loadComments();
+        } else {
+            document.getElementById('add-comment-section').style.display = 'none';
+            document.getElementById('login-prompt').style.display = 'block';
+            
+            // Show sign-in message immediately - no Firestore calls
+            document.getElementById('comments-container').innerHTML = '<p>Please sign in to view comments.</p>';
+        }
+    }
+
+    async loadComments() {
+        if (!this.currentSnippetId || !userManager.user) {
+            return;
+        }
+
+        try {
+            const commentsQuery = window.query(
+                window.collection(window.db, 'comments'),
+                window.where('snippetId', '==', this.currentSnippetId),
+                window.orderBy('createdAt', 'desc')
+            );
+            
+            const querySnapshot = await window.getDocs(commentsQuery);
+            const commentsContainer = document.getElementById('comments-container');
+            commentsContainer.innerHTML = '';
+
+            if (querySnapshot.empty) {
+                commentsContainer.innerHTML = '<p>No comments yet. Be the first to comment!</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const comment = doc.data();
+                const commentElement = this.createCommentElement(comment);
+                commentsContainer.appendChild(commentElement);
+            });
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            document.getElementById('comments-container').innerHTML = '<p>Error loading comments.</p>';
+        }
+    }
+
+    createCommentElement(comment) {
+        const div = document.createElement('div');
+        div.className = 'comment';
+        
+        const date = comment.createdAt ? comment.createdAt.toDate().toLocaleDateString() : 'Recently';
+        
+        div.innerHTML = `
+            <div class="comment-author">${comment.authorName}</div>
+            <div class="comment-text">${comment.text}</div>
+            <div class="comment-date">${date}</div>
+        `;
+        
+        return div;
+    }
+
+    async addComment() {
+        if (!userManager.user) {
+            alert('Please sign in to add comments');
+            return;
+        }
+
+        const commentText = document.getElementById('comment-text').value.trim();
+        if (!commentText) {
+            alert('Please enter a comment');
+            return;
+        }
+
+        try {
+            await window.addDoc(window.collection(window.db, 'comments'), {
+                snippetId: this.currentSnippetId,
+                text: commentText,
+                authorId: userManager.user.uid,
+                authorName: userManager.user.displayName || userManager.user.email,
+                createdAt: window.serverTimestamp()
+            });
+
+            document.getElementById('comment-text').value = '';
+            await this.loadComments();
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            alert('Error adding comment. Please try again.');
+        }
+    }
+
+    closeModal() {
+        document.getElementById('commentsModal').style.display = 'none';
+        this.currentSnippetId = null;
+    }
+}
+
+// Global instances
+const db = new SnippetsDatabase();
+const userManager = new UserManager();
+const commentsManager = new CommentsManager();
+
+// Authentication Functions
+function initializeAuthStateListener() {
+    window.onAuthStateChanged(window.auth, (user) => {
+        userManager.setUser(user);
+        updateUI(user);
+    });
+}
+
+function updateUI(user) {
+    const loggedIn = document.getElementById('logged-in');
+    const loggedOut = document.getElementById('logged-out');
+
+    if (user) {
+        document.getElementById('username').textContent = user.displayName || user.email;
+        document.getElementById('user-avatar').src = user.photoURL || '/default-avatar.png';
+        loggedIn.style.display = 'flex';
+        loggedOut.style.display = 'none';
+    } else {
+        loggedIn.style.display = 'none';
+        loggedOut.style.display = 'flex';
+    }
+}
+
+async function signInWithGoogle() {
+    const provider = new window.GoogleAuthProvider();
+    try {
+        await window.signInWithPopup(window.auth, provider);
+    } catch (error) {
+        console.error('Google sign-in failed:', error);
+        alert('Sign-in failed. Please try again.');
+    }
+}
+
+async function signInWithGitHub() {
+    const provider = new window.GithubAuthProvider();
+    try {
+        await window.signInWithPopup(window.auth, provider);
+    } catch (error) {
+        console.error('GitHub sign-in failed:', error);
+        alert('GitHub sign-in failed. Please try again.');
+    }
+}
+
+async function signOut() {
+    try {
+        await window.firebaseSignOut(window.auth);
+    } catch (error) {
+        console.error('Sign-out failed:', error);
+    }
+}
+
+// App Functions
 async function initializeApp() {
     const loaded = await db.loadDatabase();
     if (loaded) {
@@ -106,19 +371,16 @@ async function initializeApp() {
     }
 }
 
-// Search functionality
 function performSearch() {
     const query = document.getElementById('searchInput').value;
     const filters = {};
     
-    // Check if user has premium access (implement your auth logic here)
     filters.showPremium = checkPremiumAccess();
     
     const results = db.search(query, filters);
     displaySnippets(results);
 }
 
-// Display snippets in the UI
 function displaySnippets(snippets) {
     const container = document.getElementById('snippetsContainer');
     container.innerHTML = '';
@@ -127,6 +389,9 @@ function displaySnippets(snippets) {
         const snippetElement = createSnippetElement(snippet);
         container.appendChild(snippetElement);
     });
+
+    // Update favorite buttons after displaying snippets
+    userManager.updateFavoriteButtons();
 }
 
 function createSnippetElement(snippet) {
@@ -146,68 +411,81 @@ function createSnippetElement(snippet) {
             <pre><code>${snippet.premium && !checkPremiumAccess() ? 
                 getPreviewCode(snippet.code) : snippet.code}</code></pre>
         </div>
-        <div class="output-container" id="output-${snippet.id}">
-            <div class="output-content">${snippet.example_output || 'No example output available'}</div>
-        </div>
         <div class="snippet-actions">
-            <button class="action-btn toggle-output-btn" 
-                    data-snippet-id="${snippet.id}" 
-                    onclick="toggleOutput(${snippet.id})">
-                Show Output
+            <button class="btn" data-snippet-id="${snippet.id}" 
+                    onclick="userManager.toggleFavorite('${snippet.id}')">
+                🤍 Favorite
             </button>
-            <button class="action-btn toggle-output-btn" onclick="toggleFavorite(${snippet.id})">
-                ❤️ Favorite
+            <button class="btn" onclick="commentsManager.showComments('${snippet.id}', '${snippet.title}')">
+                💬 Comments
             </button>
-        </div>
-        <div class="snippet-footer">
-            <button onclick="copyToClipboard('${snippet.id}')">Copy</button>
-            <button onclick="toggleFavorite('${snippet.id}')">♥ Favorite</button>
+            <button class="btn" onclick="copyToClipboard('${snippet.id}')">
+                📋 Copy
+            </button>
         </div>
     `;
     return div;
 }
 
-// Utility functions
-function populateFilters() {
-    populateSelect('categoryFilter', db.getCategories());
-    populateSelect('languageFilter', db.getLanguages());
-    populateSelect('difficultyFilter', ['beginner', 'intermediate', 'advanced']);
+function showFavorites() {
+    if (!userManager.user) {
+        alert('Please sign in to view your favorites');
+        return;
+    }
+
+    const favoriteIds = userManager.getFavorites();
+    if (favoriteIds.length === 0) {
+        alert('You haven\'t favorited any snippets yet!');
+        return;
+    }
+
+    const favoriteSnippets = favoriteIds
+        .map(id => db.getSnippetById(id))
+        .filter(snippet => snippet !== undefined);
+
+    displaySnippets(favoriteSnippets);
 }
 
-function populateSelect(selectId, options) {
-    const select = document.getElementById(selectId);
-    select.innerHTML = '<option value="">All</option>';
-    options.forEach(option => {
-        const optionElement = document.createElement('option');
-        optionElement.value = option;
-        optionElement.textContent = option.charAt(0).toUpperCase() + option.slice(1);
-        select.appendChild(optionElement);
-    });
+function showAllSnippets() {
+    displaySnippets(db.search(''));
+}
+
+// Utility functions
+function populateFilters() {
+    // This function can be expanded later for category/language filters
 }
 
 function getPreviewCode(code) {
-    // Show only first few lines for premium content
     const lines = code.split('\n');
     const previewLines = lines.slice(0, 5);
     return previewLines.join('\n') + '\n\n// ... Premium content continues ...';
 }
 
 function checkPremiumAccess() {
-    // Implement your authentication/purchase check logic here
-    return localStorage.getItem('premiumAccess') === 'true';
+    // For now, return false. You can implement premium logic later
+    return false;
 }
 
-function toggleOutput(snippetId) {
-    const outputContainer = document.getElementById(`output-${snippetId}`);
-    const toggleBtn = document.querySelector(`[data-snippet-id="${snippetId}"]`);
-    
-    if (outputContainer.classList.contains('show')) {
-        outputContainer.classList.remove('show');
-        toggleBtn.textContent = 'Show Output';
-    } else {
-        outputContainer.classList.add('show');
-        toggleBtn.textContent = 'Hide Output';
+async function copyToClipboard(snippetId) {
+    const snippet = db.getSnippetById(snippetId);
+    if (snippet) {
+        try {
+            await navigator.clipboard.writeText(snippet.code);
+            alert('Code copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy code');
+        }
     }
+}
+
+// Modal functions
+function closeCommentsModal() {
+    commentsManager.closeModal();
+}
+
+function addComment() {
+    commentsManager.addComment();
 }
 
 // Initialize the app when DOM is loaded
