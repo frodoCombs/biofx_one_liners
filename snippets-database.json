@@ -153,6 +153,11 @@
         "example_output": "",
         "created_date": "2024-01-25",
         "author": "BioCoder"
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> 5cd793c (expand db)
       },
       {
         "id": 12,
@@ -377,6 +382,38 @@
         "example_output": "@read1/2\nGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGC\n+\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
         "created_date": "2024-01-26",
         "author": "BioCoder"
+<<<<<<< HEAD
+=======
+      },
+      {
+        "id": 28,
+        "title": "Basic Sequence Statistics",
+        "description": "Calculate basic statistics (including GC content) of a fastx sequence",
+        "language": "bash",
+        "category": "sequence-analysis",
+        "tags": ["gc-content", "dna", "sequence-analysis", "N50", "base-quality", "read-length", "number-of-sequences", "type-of-sequence"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "seqkit stats *.f{a,q}.gz -a",
+        "example_output": "file\tformat\ttype\tnum_seqs\tsum_len\tmin_len\tavg_len\tmax_len\tQ1\tQ2\tQ3\tsum_gap\tN50\tN50_num\tQ20(%)\tQ30(%)\tAvgQual\tGC(%)\tsum_n\nhairpin.fa.gz\tFASTA\tRNA\t28,645\t2,949,871\t39\t103\t2,354\t76\t91\t111\t0\t101\t380\t0\t0\t0\t45.77\t255\nmature.fa.gz\tFASTA\tRNA\t35,828\t781,222\t15\t21.8\t34\t21\t22\t22\t0\t22\t12\t0\t0\t0\t47.6\t0\nIllimina1.8.fq.gz\tFASTQ\tDNA\t10,000\t1,500,000\t150\t150\t150\t150\t150\t150\t0\t150\t1\t96.16\t89.71\t24.82\t49.91\t38\nnanopore.fq.gz\tFASTQ\tDNA\t4,000\t1,798,723\t153\t449.7\t6,006\t271\t318\t391\t0\t395\t585\t40.79\t12.63\t9.48\t46.66\t0\nreads_1.fq.gz\tFASTQ\tDNA\t2,500\t567,516\t226\t227\t229\t227\t227\t227\t0\t227\t3\t91.24\t86.62\t15.45\t53.63\t44\nreads_2.fq.gz\tFASTQ\tDNA\t2,500\t560,002\t223\t224\t225\t224\t224\t224\t0\t224\t2\t91.06\t87.66\t14.62\t54.77\t2",
+        "created_date": "2024-01-26",
+        "author": "FC"
+      },
+      {
+        "id": 29,
+        "title": "View an alignment in the terminal",
+        "description": "View and alignment with samtools tview",  
+        "language": "bash",
+        "category": "alignment",
+        "tags": ["samtools", "alignment", "view", "terminal"],
+        "difficulty": "beginner",
+        "premium": false,
+        "code": "samtools tview in.sorted.bam ref.fa",
+        "example_output": "",
+        "created_date": "2024-01-26",
+        "author": "FC"
+>>>>>>> Stashed changes
+>>>>>>> 5cd793c (expand db)
       }
     ],
     "categories": [
