@@ -153,11 +153,6 @@
         "example_output": "",
         "created_date": "2024-01-25",
         "author": "BioCoder"
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> 5cd793c (expand db)
       },
       {
         "id": 12,
@@ -382,8 +377,6 @@
         "example_output": "@read1/2\nGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGC\n+\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
         "created_date": "2024-01-26",
         "author": "BioCoder"
-<<<<<<< HEAD
-=======
       },
       {
         "id": 28,
@@ -412,8 +405,6 @@
         "example_output": "",
         "created_date": "2024-01-26",
         "author": "FC"
->>>>>>> Stashed changes
->>>>>>> 5cd793c (expand db)
       }
     ],
     "categories": [
