@@ -89,6 +89,8 @@ h1 {
     gap: 0.75rem;
     justify-content: center;
     flex-wrap: wrap;
+    margin-left: auto; /* Push buttons to the right */
+
 }
 
 .btn {

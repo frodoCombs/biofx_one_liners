@@ -61,7 +61,15 @@ class SnippetsDatabase {
     }
 
     getSnippetById(id) {
-        return this.snippets.find(snippet => snippet.id === id);
+        // Try exact match first
+        let snippet = this.snippets.find(snippet => snippet.id === id);
+        
+        // If not found, try string comparison (in case of type mismatch)
+        if (!snippet) {
+            snippet = this.snippets.find(snippet => String(snippet.id) === String(id));
+        }
+        
+        return snippet;
     }
 
     getCategories() {
@@ -95,6 +103,8 @@ class UserManager {
             this.loadUserFavorites();
         } else {
             this.favorites.clear();
+            this.updateFavoritesCount();
+            this.updateFavoriteButtons();
         }
     }
 
@@ -102,6 +112,7 @@ class UserManager {
         if (!this.user) return;
         
         try {
+            console.log('Loading favorites for user:', this.user.uid);
             // Load favorites from Firestore
             const favoritesQuery = window.query(
                 window.collection(window.db, 'favorites'),
@@ -111,9 +122,12 @@ class UserManager {
             
             this.favorites.clear();
             querySnapshot.forEach((doc) => {
-                this.favorites.add(doc.data().snippetId);
+                const data = doc.data();
+                // Ensure consistent string storage
+                this.favorites.add(String(data.snippetId));
             });
             
+            console.log('Loaded favorites:', Array.from(this.favorites));
             this.updateFavoritesCount();
             this.updateFavoriteButtons();
         } catch (error) {
@@ -121,37 +135,46 @@ class UserManager {
         }
     }
 
+
     async toggleFavorite(snippetId) {
         if (!this.user) {
             alert('Please sign in to favorite snippets');
             return;
         }
 
+        // Ensure we're storing IDs consistently as strings
+        const id = String(snippetId);
+        console.log('Toggling favorite for ID:', id);
+
         try {
-            if (this.favorites.has(snippetId)) {
+            if (this.favorites.has(id)) {
                 // Remove from favorites
-                this.favorites.delete(snippetId);
+                this.favorites.delete(id);
                 
                 // Remove from Firestore
                 const favoritesQuery = window.query(
                     window.collection(window.db, 'favorites'),
                     window.where('userId', '==', this.user.uid),
-                    window.where('snippetId', '==', snippetId)
+                    window.where('snippetId', '==', id)
                 );
                 const querySnapshot = await window.getDocs(favoritesQuery);
                 querySnapshot.forEach((doc) => {
                     doc.ref.delete();
                 });
+                
+                console.log('Removed favorite:', id);
             } else {
                 // Add to favorites
-                this.favorites.add(snippetId);
+                this.favorites.add(id);
                 
                 // Add to Firestore
                 await window.addDoc(window.collection(window.db, 'favorites'), {
                     userId: this.user.uid,
-                    snippetId: snippetId,
+                    snippetId: id, // Store as consistent type
                     createdAt: window.serverTimestamp()
                 });
+                
+                console.log('Added favorite:', id);
             }
 
             this.updateFavoritesCount();
@@ -205,24 +228,21 @@ class CommentsManager {
         // Show modal immediately
         document.getElementById('commentsModal').style.display = 'block';
         
+        // Always show comments to everyone, but only allow adding if signed in
+        document.getElementById('comments-container').innerHTML = '<p>Loading comments...</p>';
+        await this.loadComments();
+        
         if (userManager.user) {
             document.getElementById('add-comment-section').style.display = 'block';
             document.getElementById('login-prompt').style.display = 'none';
-            
-            // Show loading message and then load comments
-            document.getElementById('comments-container').innerHTML = '<p>Loading comments...</p>';
-            await this.loadComments();
         } else {
             document.getElementById('add-comment-section').style.display = 'none';
             document.getElementById('login-prompt').style.display = 'block';
-            
-            // Show sign-in message immediately - no Firestore calls
-            document.getElementById('comments-container').innerHTML = '<p>Please sign in to view comments.</p>';
         }
     }
 
     async loadComments() {
-        if (!this.currentSnippetId || !userManager.user) {
+        if (!this.currentSnippetId) {
             return;
         }
 
@@ -249,7 +269,7 @@ class CommentsManager {
             });
         } catch (error) {
             console.error('Error loading comments:', error);
-            document.getElementById('comments-container').innerHTML = '<p>Error loading comments.</p>';
+            document.getElementById('comments-container').innerHTML = '<p>Error loading comments. Please try again later.</p>';
         }
     }
 
@@ -311,6 +331,7 @@ const commentsManager = new CommentsManager();
 // Authentication Functions
 function initializeAuthStateListener() {
     window.onAuthStateChanged(window.auth, (user) => {
+        console.log('Auth state changed:', user ? user.email : 'No user');
         userManager.setUser(user);
         updateUI(user);
     });
@@ -334,7 +355,8 @@ function updateUI(user) {
 async function signInWithGoogle() {
     const provider = new window.GoogleAuthProvider();
     try {
-        await window.signInWithPopup(window.auth, provider);
+        const result = await window.signInWithPopup(window.auth, provider);
+        console.log('Google sign-in successful:', result.user.email);
     } catch (error) {
         console.error('Google sign-in failed:', error);
         alert('Sign-in failed. Please try again.');
@@ -344,7 +366,8 @@ async function signInWithGoogle() {
 async function signInWithGitHub() {
     const provider = new window.GithubAuthProvider();
     try {
-        await window.signInWithPopup(window.auth, provider);
+        const result = await window.signInWithPopup(window.auth, provider);
+        console.log('GitHub sign-in successful:', result.user.email);
     } catch (error) {
         console.error('GitHub sign-in failed:', error);
         alert('GitHub sign-in failed. Please try again.');
@@ -354,6 +377,7 @@ async function signInWithGitHub() {
 async function signOut() {
     try {
         await window.firebaseSignOut(window.auth);
+        console.log('Sign-out successful');
     } catch (error) {
         console.error('Sign-out failed:', error);
     }
@@ -412,11 +436,11 @@ function createSnippetElement(snippet) {
                 getPreviewCode(snippet.code) : snippet.code}</code></pre>
         </div>
         <div class="snippet-actions">
-            <button class="btn" data-snippet-id="${snippet.id}" 
+            <button class="btn favorite-btn" data-snippet-id="${snippet.id}" 
                     onclick="userManager.toggleFavorite('${snippet.id}')">
                 🤍 Favorite
             </button>
-            <button class="btn" onclick="commentsManager.showComments('${snippet.id}', '${snippet.title}')">
+            <button class="btn" onclick="commentsManager.showComments('${snippet.id}', '${snippet.title.replace(/'/g, '\\')}')">
                 💬 Comments
             </button>
             <button class="btn" onclick="copyToClipboard('${snippet.id}')">
@@ -434,14 +458,31 @@ function showFavorites() {
     }
 
     const favoriteIds = userManager.getFavorites();
+    console.log('Favorite IDs from user manager:', favoriteIds);
+    
     if (favoriteIds.length === 0) {
         alert('You haven\'t favorited any snippets yet!');
         return;
     }
 
+    // Debug: Check what snippets are available
+    console.log('Available snippets:', db.snippets.map(s => ({ id: s.id, title: s.title })));
+    
     const favoriteSnippets = favoriteIds
-        .map(id => db.getSnippetById(id))
+        .map(id => {
+            console.log('Looking for snippet with ID:', id, 'Type:', typeof id);
+            const snippet = db.getSnippetById(id);
+            console.log('Found snippet:', snippet ? snippet.title : 'NOT FOUND');
+            return snippet;
+        })
         .filter(snippet => snippet !== undefined);
+
+    console.log('Final favorite snippets:', favoriteSnippets);
+    
+    if (favoriteSnippets.length === 0) {
+        alert('No favorite snippets found. This might be a data type mismatch issue.');
+        return;
+    }
 
     displaySnippets(favoriteSnippets);
 }
